@@ -3,19 +3,15 @@ namespace www\week2\day1\dinhtuan;
 
 class MemoryCache implements CacheInterface
 {
-    const MAXCACHESIZE = 200000;
 
     private $cacheArray = array();
-    private $cacheSize;
 
 
     /**
      * constructor use for set cache size
      */
     public function __construct()
-    {
-        $this->cacheSize = 0;
-    }
+    {}
 
     /**
      * this function is used to check weather the key exist in cache array

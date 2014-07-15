@@ -74,6 +74,9 @@ class ImportImprove
 	{
 		$this->fileToImportName = __DIR__ . "\\" . $name;
         $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
+        if (!is_dir($this->pathOfTempRepo)) {
+            mkdir($this->pathOfTempRepo);
+        }
 	}
 
 	/**
@@ -106,9 +109,9 @@ class ImportImprove
 		// Arrays, variables use for getting IDs and stuffs
         $listOptionIndex = array();
         $listOptionName = array();
-        $listOptionValue = array();
+        $listOptionValue = new MemoryCache();
         $indexOfOptionValue = 1;
-        $listCategoryName = array();
+        $listCategoryName = new MemoryCache();
         $indexOfCategory = 1;
 
         // Get all the OPTION
@@ -167,18 +170,10 @@ class ImportImprove
                 		foreach ($optionValues as $value) {
                 			
                 			$optionValueId = "";
+                            $searchCode = $optionId . $value;
 
-                			if (!isset($listOptionValue[$optionId])) {
-                                $listOptionValue[$optionId] = array();
-                                $listOptionValue[$optionId][$value] = $indexOfOptionValue;
-                                $optionValueId = $indexOfOptionValue;
-                                $indexOfOptionValue++;
-
-                                //Insert the option value
-                                $this->stringOfOptVal .= "'" . $optionId . "','" . $value . "'\n";
-
-                            } elseif (!isset($listOptionValue[$optionId][$value])) {
-                                $listOptionValue[$optionId][$value] = $indexOfOptionValue;
+                			if (!$listOptionValue->check_exist($searchCode)) {
+                                $listOptionValue->add($searchCode,$indexOfOptionValue);
                                 $optionValueId = $indexOfOptionValue;
                                 $indexOfOptionValue++;
 
@@ -186,7 +181,7 @@ class ImportImprove
                                 $this->stringOfOptVal .= "'" . $optionId . "','" . $value . "'\n";
 
                             } else {
-                                $optionValueId = $listOptionValue[$optionId][$value];
+                                $optionValueId = $listOptionValue->get($searchCode);
                             }
 
                             // Insert into the Product Option table
@@ -204,15 +199,15 @@ class ImportImprove
                         
                         $idOfCategory = "";
 
-                        if (!isset($listCategoryName[$name])) {
-                            $listCategoryName[$name]= $indexOfCategory;
+                        if (!$listCategoryName->check_exist($name)) {
+                            $listCategoryName->add($name, $indexOfCategory);
                             $idOfCategory = $indexOfCategory;
                             $indexOfCategory++;
 
                             // Insert into the CATEGORY table
                             $this->stringOfCat .= "'" . $name . "'\n";
                         } else {
-                            $idOfCategory = $listCategoryName[$name];
+                            $idOfCategory = $listCategoryName->get($name);
                         }
 
                         // Insert into the PRODUCT_CATEGORY table
@@ -223,10 +218,11 @@ class ImportImprove
 
             if ($this->chunkSize = self::MAXCHUNKSIZE) {
                 $this->writethemall($outProduct, $outOptVal, $outCategory, $outProdOpt, $outProdCat);
+                $this->chunkSize = 0;
             }
         }
 
-        if ($this->chunkSize = self::MAXCHUNKSIZE) {
+        if ($this->chunkSize > 0) {
                 $this->writethemall($outProduct, $outOptVal, $outCategory, $outProdOpt, $outProdCat);
         }
 	}
