@@ -74,6 +74,9 @@ class ImportImprove
 	{
 		$this->fileToImportName = __DIR__ . "\\" . $name;
         $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
+        if (!is_dir($this->pathOfTempRepo)) {
+            mkdir($this->pathOfTempRepo);
+        }
 	}
 
 	/**
