@@ -3,14 +3,14 @@ namespace www\week2\day1\dinhtuan;
 
 class ImportImprove
 {
-	private $fileToImportName;
-	private $nameOfProdFile = "product.csv";
-	private $nameOfOptFile = "option.csv";
-	private $nameOfCatFile = "category.csv";
-	private $nameOfOptValFile = "optionvalue.csv";
-	private $nameOfProdOptFile = "productoption.csv";
-	private $nameOfProdCatFile = "productcategory.csv";
-	private $pathOfTempRepo = '\temp\\';
+    private $fileToImportName;
+    private $nameOfProdFile = "product.csv";
+    private $nameOfOptFile = "option.csv";
+    private $nameOfCatFile = "category.csv";
+    private $nameOfOptValFile = "optionvalue.csv";
+    private $nameOfProdOptFile = "productoption.csv";
+    private $nameOfProdCatFile = "productcategory.csv";
+    private $pathOfTempRepo = '\temp\\';
     private $chunkSize = 0;
 
     private $stringOfProd = "";
@@ -28,7 +28,7 @@ class ImportImprove
     const TB_PRODUCT_CATEGORY = 'product_category';
     const MAXCHUNKSIZE = 5000; 
 
-	// Array for mapping
+    // Array for mapping
     private $colIndex = array(
         'prod_id' => 0,
         'prod_name' => 1,
@@ -65,53 +65,53 @@ class ImportImprove
         $this->stringOfProdCat = "";
     }
 
-	/**
-	 * constructor
-	 * @param string $name name of the file to import
-	 * @return void
-	 */
-	public function __construct($name)
-	{
-		$this->fileToImportName = __DIR__ . "\\" . $name;
+    /**
+     * constructor
+     * @param string $name name of the file to import
+     * @return void
+     */
+    public function __construct($name)
+    {
+        $this->fileToImportName = __DIR__ . "\\" . $name;
         $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
         if (!is_dir($this->pathOfTempRepo)) {
             mkdir($this->pathOfTempRepo);
         }
-	}
+    }
 
-	/**
-	 * Array use for mapping setter
-	 * @param array $array the array to map
-	 * @return void
-	 */
-	public function setMapping($array)
-	{
-		$this->colIndex = $array;
-	}
+    /**
+     * Array use for mapping setter
+     * @param array $array the array to map
+     * @return void
+     */
+    public function setMapping($array)
+    {
+        $this->colIndex = $array;
+    }
 
-	/**
-	 * Generate CSV files for each tables for high-speed import later
-	 *@return void
-	 */
-	public function generateCSVs()
-	{
-		$in = fopen($this->fileToImportName, 'r') or die("Cannot open file " . $this->fileToImportName);
-		$outProduct = fopen($this->getPath($this->nameOfProdFile), 'w') or die("Cannot open file " . $this->nameOfProdFile);
-		$outOption = fopen($this->getPath($this->nameOfOptFile), 'w') or die("Cannot open file " . $this->nameOfOptFile);
-		$outCategory = fopen($this->getPath($this->nameOfCatFile), 'w') or die("Cannot open file " . $this->nameOfCatFile);
-		$outOptVal = fopen($this->getPath($this->nameOfOptValFile), 'w') or die("Cannot open file " . $this->nameOfOptValFile);
-		$outProdOpt = fopen($this->getPath($this->nameOfProdOptFile), 'w') or die("Cannot open file " . $this->nameOfProdOptFile);
-		$outProdCat = fopen($this->getPath($this->nameOfProdCatFile), 'w') or die("Cannot open file " . $this->nameOfProdCatFile);
+    /**
+     * Generate CSV files for each tables for high-speed import later
+     *@return void
+     */
+    public function generateCSVs()
+    {
+        $in = fopen($this->fileToImportName, 'r') or die("Cannot open file " . $this->fileToImportName);
+        $outProduct = fopen($this->getPath($this->nameOfProdFile), 'w') or die("Cannot open file " . $this->nameOfProdFile);
+        $outOption = fopen($this->getPath($this->nameOfOptFile), 'w') or die("Cannot open file " . $this->nameOfOptFile);
+        $outCategory = fopen($this->getPath($this->nameOfCatFile), 'w') or die("Cannot open file " . $this->nameOfCatFile);
+        $outOptVal = fopen($this->getPath($this->nameOfOptValFile), 'w') or die("Cannot open file " . $this->nameOfOptValFile);
+        $outProdOpt = fopen($this->getPath($this->nameOfProdOptFile), 'w') or die("Cannot open file " . $this->nameOfProdOptFile);
+        $outProdCat = fopen($this->getPath($this->nameOfProdCatFile), 'w') or die("Cannot open file " . $this->nameOfProdCatFile);
 
-		$firstline = fgets($in);
-		$fields = str_getcsv($firstline);
+        $firstline = fgets($in);
+        $fields = str_getcsv($firstline);
 
-		// Arrays, variables use for getting IDs and stuffs
+        // Arrays, variables use for getting IDs and stuffs
         $listOptionIndex = array();
         $listOptionName = array();
-        $listOptionValue = new MemoryCache();
+        $listOptionValue = new HardwareCache("OptVal");
         $indexOfOptionValue = 1;
-        $listCategoryName = new MemoryCache();
+        $listCategoryName = new HardwareCache("Cat");
         $indexOfCategory = 1;
 
         // Get all the OPTION
@@ -126,17 +126,17 @@ class ImportImprove
 
         // Insert all the Options
         foreach ($listOptionName as $name) {
-        	fwrite($outOption, "'" . $name . "'\n");
+            fwrite($outOption, "'" . $name . "'\n");
         }
 
         while (!feof($in)) {
-        	$row = fgets($in);
+            $row = fgets($in);
             $this->chunkSize++;
             if ("" != $row) {
 
-            	$data = str_getcsv($row);
+                $data = str_getcsv($row);
 
-            	// Format date/time data
+                // Format date/time data
                 $data[$this->colIndex['prod_available']] = ("" == $data[$this->colIndex['prod_available']]) ? $data[$this->colIndex['prod_available']] : date('Y-m-d h:i:s', strtotime($data[$this->colIndex['prod_available']]));
                 $data[$this->colIndex['prod_create']] = ("" == $data[$this->colIndex['prod_create']]) ? $data[$this->colIndex['prod_create']] : date('Y-m-d h:i:s', strtotime($data[$this->colIndex['prod_create']]));
                 $data[$this->colIndex['prod_update']] = ("" == $data[$this->colIndex['prod_update']]) ? $data[$this->colIndex['prod_update']] : date('Y-m-d h:i:s', strtotime($data[$this->colIndex['prod_update']]));
@@ -160,34 +160,43 @@ class ImportImprove
                 $numOpt = count($listOptionIndex);
                 for ($i = 0; $i < $numOpt; $i++) {
 
-                	$optionColIndex = $listOptionIndex[$i];
+                    $optionColIndex = $listOptionIndex[$i];
 
-                	if ("" != $data[$optionColIndex]) {
+                    if ("" != $data[$optionColIndex]) {
 
-                		$optionId = $i + 1;
-                		$optionValues = explode(";", $data[$optionColIndex]);
+                        $optionId = $i + 1;
+                        $optionValues = explode(";", $data[$optionColIndex]);
 
-                		foreach ($optionValues as $value) {
-                			
-                			$optionValueId = "";
+                        foreach ($optionValues as $value) {
+                            
+                            $optionValueId = "";
                             $searchCode = $optionId . $value;
 
-                			if (!$listOptionValue->check_exist($searchCode)) {
+                            // if (!$listOptionValue->check_exist($searchCode)) {
+                            //     $listOptionValue->add($searchCode,$indexOfOptionValue);
+                            //     $optionValueId = $indexOfOptionValue;
+                            //     $indexOfOptionValue++;
+
+                            //     //Insert the option value
+                            //     $this->stringOfOptVal .= "'" . $optionId . "','" . $value . "'\n";
+
+                            // } else {
+                            //     $optionValueId = $listOptionValue->get($searchCode);
+                            // }
+
+                            if (!$optionValueId = $listOptionValue->checkToGet($searchCode)) {
                                 $listOptionValue->add($searchCode,$indexOfOptionValue);
                                 $optionValueId = $indexOfOptionValue;
                                 $indexOfOptionValue++;
 
                                 //Insert the option value
-                                $this->stringOfOptVal .= "'" . $optionId . "','" . $value . "'\n";
-
-                            } else {
-                                $optionValueId = $listOptionValue->get($searchCode);
+                                $this->stringOfOptVal .= "'" . $optionId . "','" . $value . "'\n";                                
                             }
 
                             // Insert into the Product Option table
                             $this->stringOfProdOpt .= "'" . $data[$this->colIndex['prod_id']] . "','" . $optionValueId . "'\n";
-                		}
-                	}
+                        }
+                    }
                 }
 
                 // category
@@ -199,15 +208,24 @@ class ImportImprove
                         
                         $idOfCategory = "";
 
-                        if (!$listCategoryName->check_exist($name)) {
+                        // if (!$listCategoryName->check_exist($name)) {
+                        //     $listCategoryName->add($name, $indexOfCategory);
+                        //     $idOfCategory = $indexOfCategory;
+                        //     $indexOfCategory++;
+
+                        //     // Insert into the CATEGORY table
+                        //     $this->stringOfCat .= "'" . $name . "'\n";
+                        // } else {
+                        //     $idOfCategory = $listCategoryName->get($name);
+                        // }
+
+                        if (!$idOfCategory = $listCategoryName->checkToGet($name)) {
                             $listCategoryName->add($name, $indexOfCategory);
                             $idOfCategory = $indexOfCategory;
                             $indexOfCategory++;
 
                             // Insert into the CATEGORY table
                             $this->stringOfCat .= "'" . $name . "'\n";
-                        } else {
-                            $idOfCategory = $listCategoryName->get($name);
                         }
 
                         // Insert into the PRODUCT_CATEGORY table
@@ -225,7 +243,7 @@ class ImportImprove
         if ($this->chunkSize > 0) {
                 $this->writethemall($outProduct, $outOptVal, $outCategory, $outProdOpt, $outProdCat);
         }
-	}
+    }
 
     public function import($db)
     {
@@ -265,5 +283,5 @@ class ImportImprove
                 (product_id,category_id)";
         $db->query($sql) or die("Cannot import into table Product Category. Error: " . $db->error);
     }
-	
+    
 }

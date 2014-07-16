@@ -3,7 +3,7 @@
 define ("NAME", 'rubikin_db');
 define ("USER", 'root');
 define ("PASS", '');
-define ("IMPORT_FILE_NAME", "products300k.csv");
+define ("IMPORT_FILE_NAME", "products10000.csv");
 
 const TB_PRODUCT = 'product';
 const TB_CATEGORY = 'category';
