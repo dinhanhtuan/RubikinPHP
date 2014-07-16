@@ -136,6 +136,8 @@ class ImportImprove
 
             	$data = str_getcsv($row);
 
+                // THINGS RELATE TO PRODUCT TABLE
+
             	// Format date/time data
                 $data[$this->colIndex['prod_available']] = ("" == $data[$this->colIndex['prod_available']]) ? $data[$this->colIndex['prod_available']] : date('Y-m-d h:i:s', strtotime($data[$this->colIndex['prod_available']]));
                 $data[$this->colIndex['prod_create']] = ("" == $data[$this->colIndex['prod_create']]) ? $data[$this->colIndex['prod_create']] : date('Y-m-d h:i:s', strtotime($data[$this->colIndex['prod_create']]));
@@ -155,6 +157,10 @@ class ImportImprove
                                      . $data[$this->colIndex['prod_method']] . "'\n";
 
                 $this->stringOfProd .= $lineOfProduct;
+
+                // END OF THINGS RELATE TO PRODUCT TABLE
+
+                // THINGS RELATE TO OPTION_VALUE TABLE AND PRODUCT_OPTION TABLE
 
                 // Loop through the OPTION columns
                 $numOpt = count($listOptionIndex);
@@ -198,7 +204,10 @@ class ImportImprove
                 	}
                 }
 
-                // category
+                // END OF THINGS RELATE TO OPTION_VALUE AND PRODUCT_OPTION TABLE
+
+                // THINGS RELATE TO CATEGORY TABLE AND PRODUCT_CATEGORY TABLE
+
                 if ("" != $data[$this->colIndex['category']]) {
 
                     $categoryName = explode(";", $data[$this->colIndex['category']]);
@@ -222,55 +231,49 @@ class ImportImprove
                         $this->stringOfProdCat .= "'" . $data[$this->colIndex['prod_id']] . "','" . $idOfCategory . "'\n";
                     }
                 }
+
+                // END OF THINGS RELATE TO CATEGORY TABLE AND PRODUCT_CATEGORY TABLE
             }
 
             if ($this->chunkSize = self::MAXCHUNKSIZE) {
                 $this->writethemall($outProduct, $outOptVal, $outCategory, $outProdOpt, $outProdCat);
+                $this->chunkSize = 0;
             }
         }
 
-        if ($this->chunkSize = self::MAXCHUNKSIZE) {
+        if ($this->chunkSize > 0) {
                 $this->writethemall($outProduct, $outOptVal, $outCategory, $outProdOpt, $outProdCat);
         }
 	}
 
+    private function tinyImport($db, $string, $table, $fieldsToImport)
+    {
+        $sql = "LOAD DATA LOCAL INFILE '" . $string . "' IGNORE INTO TABLE " . $table .
+                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
+                LINES TERMINATED BY '\n'" .
+                $fieldsToImport;
+        $db->query($sql) or die("Cannot import into table " . $table . ". Error: " . $db->error);
+    }
+
     public function import($db)
     {
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfProdFile) . "' IGNORE INTO TABLE " . self::TB_PRODUCT .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (id,name,slug,short_description,description,available_on,created_at,updated_at,deleted_at,variant_selection_method)";
-        $db->query($sql) or die("Cannot import into table Product. Error: " . $db->error);
+        $fields = "(id,name,slug,short_description,description,available_on,created_at,updated_at,deleted_at,variant_selection_method)";
+        $this->tinyImport($db, $this->getPath($this->nameOfProdFile), self::TB_PRODUCT, $fields);
 
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfOptFile) . "' IGNORE INTO TABLE " . self::TB_OPTION .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (name)";
-        $db->query($sql) or die("Cannot import into table Option. Error: " . $db->error);
+        $fields = "(name)";
+        $this->tinyImport($db, $this->getPath($this->nameOfOptFile), self::TB_OPTION, $fields);
 
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfCatFile) . "' IGNORE INTO TABLE " . self::TB_CATEGORY .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (name)";
-        $db->query($sql) or die("Cannot import into table Category. Error: " . $db->error);
+        $fields = "(name)";
+        $this->tinyImport($db, $this->getPath($this->nameOfCatFile), self::TB_CATEGORY, $fields);
 
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfOptValFile) . "' IGNORE INTO TABLE " . self::TB_OPTION_VALUE .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (option_id,value)";
-        $db->query($sql) or die("Cannot import into table Option Value. Error: " . $db->error);
+        $fields = "(option_id,value)";
+        $this->tinyImport($db, $this->getPath($this->nameOfOptValFile), self::TB_OPTION_VALUE, $fields);
 
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfProdOptFile) . "' IGNORE INTO TABLE " . self::TB_PRODUCT_OPTION .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (product_id,option_value_id)";
-        $db->query($sql) or die("Cannot import into table Product Option. Error: " . $db->error);
+        $fields = "(product_id,option_value_id)";
+        $this->tinyImport($db, $this->getPath($this->nameOfProdOptFile), self::TB_PRODUCT_OPTION, $fields);
 
-        $sql = "LOAD DATA LOCAL INFILE '" . $this->getPath($this->nameOfProdCatFile) . "' IGNORE INTO TABLE " . self::TB_PRODUCT_CATEGORY .
-                " FIELDS TERMINATED BY ',' ENCLOSED BY '\''
-                LINES TERMINATED BY '\n' 
-                (product_id,category_id)";
-        $db->query($sql) or die("Cannot import into table Product Category. Error: " . $db->error);
+        $fields = "(product_id,category_id)";
+        $this->tinyImport($db, $this->getPath($this->nameOfProdCatFile), self::TB_PRODUCT_CATEGORY, $fields);
     }
 	
 }
