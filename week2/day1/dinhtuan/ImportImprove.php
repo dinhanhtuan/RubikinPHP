@@ -10,7 +10,7 @@ class ImportImprove
     private $nameOfOptValFile = "optionvalue.csv";
     private $nameOfProdOptFile = "productoption.csv";
     private $nameOfProdCatFile = "productcategory.csv";
-    private $pathOfTempRepo = '\temp\\';
+    private $pathOfTempRepo = 'temp\\';
     private $chunkSize = 0;
 
     private $stringOfProd = "";
@@ -85,8 +85,8 @@ class ImportImprove
      */
     public function __construct($name)
     {
-        $this->fileToImportName = __DIR__ . "\\" . $name;
-        $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
+        $this->fileToImportName = $name;
+        // $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
         if (!is_dir($this->pathOfTempRepo)) {
             mkdir($this->pathOfTempRepo);
         }
