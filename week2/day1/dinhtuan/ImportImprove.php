@@ -85,8 +85,8 @@ class ImportImprove
      */
     public function __construct($name)
     {
-        $this->fileToImportName = $name;
-        // $this->pathOfTempRepo = __DIR__ . $this->pathOfTempRepo;
+        $this->fileToImportName = __DIR__ . "\\" . $name;
+        $this->pathOfTempRepo = __DIR__ . "\\" . $this->pathOfTempRepo;
         if (!is_dir($this->pathOfTempRepo)) {
             mkdir($this->pathOfTempRepo);
         }
